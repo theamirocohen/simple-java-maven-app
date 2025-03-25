@@ -51,7 +51,7 @@ jobs:
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
     - name: Update Maven/Gradle version (if needed)
-      run: |
+      run:
         # For Maven:
         mvn versions:set -DnewVersion=$NEW_VERSION
     - name: Commit and tag
