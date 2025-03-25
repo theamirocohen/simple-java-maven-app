@@ -19,6 +19,50 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+
+    - name: Get current version
+      id: version
+      run: |
+        # Fetch latest tag (or default to 0.0.0)
+        git fetch --tags
+        CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+        echo "Current version: $CURRENT_VERSION"
+        echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_ENV
+
+    - name: Calculate new version
+      id: bump
+      run: |
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+        case "${{ github.event.inputs.version_type || 'patch' }}" in
+          major)
+            NEW_VERSION="$((MAJOR + 1)).0.0"
+            ;;
+          minor)
+            NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
+            ;;
+          patch)
+            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+            ;;
+        esac
+        echo "New version: $NEW_VERSION"
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+    - name: Update Maven/Gradle version (if needed)
+      run: |
+        # For Maven:
+        mvn versions:set -DnewVersion=$NEW_VERSION
+    - name: Commit and tag
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add pom.xml  # or gradle.properties
+        git commit -m "Bump version to $NEW_VERSION"
+        git tag -a "v$NEW_VERSION" -m "Release $NEW_VERSION"
+        git push origin main --tags
+
     - name: Set up JDK 11
       uses: actions/setup-java@v4
       with:
@@ -27,14 +71,14 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
-    - name: Increment Patch Version
-      run: |
-        CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-        NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF++; print $1"."$2"."$NF}')
-        mvn versions:set -DnewVersion=$NEW_VERSION
-        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+#    - name: Increment Patch Version
+#      run: |
+#        CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+#        NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF++; print $1"."$2"."$NF}')
+#        mvn versions:set -DnewVersion=$NEW_VERSION
+#        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-    - run: mvn build-helper:parse-version versions:set -DbuildNumber=$NEW_VERSION
+#    - run: mvn build-helper:parse-version versions:set -DbuildNumber=$NEW_VERSION
 
     - name: Build with Maven
       run: mvn -B package --file pom.xml
