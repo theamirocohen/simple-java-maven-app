@@ -34,7 +34,8 @@ jobs:
         mvn versions:set -DnewVersion=$NEW_VERSION
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-	- run: mvn build-helper:parse-version versions:set -DbuildNumber=$NEW_VERSION
+    - run: mvn build-helper:parse-version versions:set -DbuildNumber=$NEW_VERSION
+
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
