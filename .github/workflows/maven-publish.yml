@@ -33,7 +33,7 @@ jobs:
     - name: Patch Versions
       uses: justalemon/VersionPatcher@master
       with:
-        version: 1.0.0.${{ github.run_number }}
+        version: 1.0.${{ github.run_number }}
     #- name: Publish to GitHub Packages Apache Maven
     #  run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
       env:
