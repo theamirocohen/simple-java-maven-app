@@ -51,9 +51,7 @@ jobs:
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
     - name: Update Maven/Gradle version (if needed)
-      run:
-        # For Maven:
-        mvn versions:set -DnewVersion=$NEW_VERSION
+      run: mvn versions:set -DnewVersion=$NEW_VERSION
     - name: Commit and tag
       run: |
         git config --global user.name "GitHub Actions"
