@@ -30,7 +30,7 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    - run: mv /home/runner/work/simple-java-maven-app/target/my-app-1.0-SNAPSHOT.jar /home/runner/work/simple-java-maven-app/target/my-app-1.0.${{ github.run_number }} 
+    - run: mv /home/runner/work/simple-java-maven-app/simple-java-maven-app/target/my-app-1.0-SNAPSHOT.jar /home/runner/work/simple-java-maven-app/simple-java-maven-apptarget/my-app-1.0.${{ github.run_number }} 
     - run: pwd
 
     - name: Patch Versions
