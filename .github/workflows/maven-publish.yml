@@ -26,50 +26,16 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
-
-      # Dependency Scanning (early in pipeline)
-      - name: Dependency Check Setup
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 11  # Dependency-Check works well with Java 11
-
-      - name: Run OWASP Dependency-Check
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 11
-
-      - name: Download Dependency-Check
-        run: |
-          wget https://github.com/jeremylong/DependencyCheck/releases/download/v${{ env.DEPENDENCY_CHECK_VERSION }}/dependency-check-${{ env.DEPENDENCY_CHECK_VERSION }}-release.zip
-          unzip dependency-check-${{ env.DEPENDENCY_CHECK_VERSION }}-release.zip
-          echo "${{ env.DEPENDENCY_CHECK_VERSION }}" > dependency-check-version.txt
-
-      - name: Scan dependencies
-        run: |
-          ./dependency-check/bin/dependency-check.sh \
-            --project "${{ github.repository }}" \
-            --scan "." \
-            --format "SARIF" \
-            --failOnCVSS 9.0 \
-            --enableExperimental \
-            --scanTarget "**/*.jar" \
-            --scanTarget "**/target/*.jar"
-        
-        # Fail the build if critical vulnerabilities found
-        if [ -f reports/dependency-check-report.sarif ]; then
-          echo "SARIF report generated"
-          # Additional check logic if needed
-        else
-          echo "::error::Dependency check failed"
-          exit 1
-        fi
-
-      - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: reports/dependency-check-report.sarif
+	  - name: Dependency Scan with Trivy
+  		uses: aquasecurity/trivy-action@v0.19.0
+  		with:
+    	  scan-type: fs
+    	  severity: CRITICAL
+    	  exit-code: '1'
+    	  ignore-unfixed: true
+    	  format: table
+    	  vuln-type: library
+    	  path: .
 
 
       - name: Build with Maven
