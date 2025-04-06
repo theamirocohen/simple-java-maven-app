@@ -28,7 +28,15 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
-      - name: Dependency Scan with Trivy
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: java
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+	  - name: Dependency Scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
@@ -60,14 +68,6 @@ jobs:
             echo "Too many critical vulnerabilities ($CRITICAL_COUNT), failing."
             exit 1
           fi
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: java
-
-      - name: Run CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
 
       # Login to GitHub Container Registry
       - name: Log in to GHCR
