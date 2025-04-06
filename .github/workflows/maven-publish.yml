@@ -1,8 +1,10 @@
 name: Build and Dockerize
 
 on:
-  push:
+ push:
     branches: [ master ]  # Change to 'main' if needed
+ pull_request:
+    branches: [ master ]
 
 env:
   REGISTRY: ghcr.io
@@ -58,6 +60,16 @@ jobs:
             echo "Too many critical vulnerabilities ($CRITICAL_COUNT), failing."
             exit 1
           fi
+
+      - name: Static Code Analysis (SonarQube)
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn verify sonar:sonar \
+            -Dsonar.projectKey=java-jenkins \
+            -Dsonar.host.url=http://129.159.129.91:9000 \
+            -Dsonar.login=$SONAR_TOKEN
 
       # Login to GitHub Container Registry
       - name: Log in to GHCR
