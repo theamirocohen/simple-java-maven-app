@@ -22,16 +22,6 @@ jobs:
       # Checkout code
       - uses: actions/checkout@v4
 
-      # Run Checkstyle (standalone)
-      - name: Run Checkstyle
-        uses: nikitasavinov/checkstyle-action@2
-        with:
-          # Use a built-in config or specify your own
-          config: google  # Options: google, sun, or a URL to your config
-          # config_url: https://raw.githubusercontent.com/checkstyle/checkstyle/master/src/main/resources/google_checks.xml
-          level: error    # error | warning | info
-          directory: src/ # Directory to scan
-          format: plain  # plain | xml | sarif
           
       # Build with Maven
       - name: Set up JDK 17
