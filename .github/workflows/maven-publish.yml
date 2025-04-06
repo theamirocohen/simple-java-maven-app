@@ -52,7 +52,7 @@ jobs:
 
       - name: Check Trivy critical count
         run: |
-          CRITICAL_COUNT=$(jq '[.[] | .Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-report.json)
+          CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-report.json)
           echo "Found $CRITICAL_COUNT critical vulnerabilities"
           if [ "$CRITICAL_COUNT" -gt 5 ]; then
             echo "Too many critical vulnerabilities ($CRITICAL_COUNT), failing."
