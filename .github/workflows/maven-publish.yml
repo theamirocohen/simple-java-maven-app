@@ -24,7 +24,7 @@ jobs:
 
       # Run Checkstyle (standalone)
       - name: Run Checkstyle
-        uses: nikitasavinov/checkstyle-action@v2
+        uses: nikitasavinov/checkstyle-action@2
         with:
           # Use a built-in config or specify your own
           config: google  # Options: google, sun, or a URL to your config
