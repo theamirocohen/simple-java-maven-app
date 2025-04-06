@@ -28,7 +28,7 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
-	  - name: Dependency Scan with Trivy
+      - name: Dependency Scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
