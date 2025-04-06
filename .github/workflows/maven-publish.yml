@@ -21,7 +21,6 @@ jobs:
     steps:
       # Checkout code
       - uses: actions/checkout@v4
-
           
       # Build with Maven
       - name: Set up JDK 17
@@ -43,8 +42,6 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B package
-
-
 
       # Login to GitHub Container Registry
       - name: Log in to GHCR
