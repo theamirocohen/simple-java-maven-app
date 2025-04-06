@@ -40,6 +40,7 @@ jobs:
           vuln-type: library
           path: .
 
+      # Build 
       - name: Build with Maven
         run: mvn -B package
 
