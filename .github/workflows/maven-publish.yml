@@ -16,6 +16,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
 
     steps:
       # Checkout code
@@ -52,25 +53,6 @@ jobs:
 
 
 
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: image
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
-          format: json
-          output: trivy-report.json
-          severity: CRITICAL
-          ignore-unfixed: true
-
-      - name: Check Trivy critical count
-        run: |
-          CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-report.json)
-          echo "Found $CRITICAL_COUNT critical vulnerabilities"
-          if [ "$CRITICAL_COUNT" -gt 5 ]; then
-            echo "Too many critical vulnerabilities ($CRITICAL_COUNT), failing."
-            exit 1
-          fi
-
       # Login to GitHub Container Registry
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -100,6 +82,26 @@ jobs:
           labels: |
             org.opencontainers.image.source=${{ github.repository_url }}
 
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: image
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          format: json
+          output: trivy-report.json
+          severity: CRITICAL
+          ignore-unfixed: true
+
+      - name: Check Trivy critical count
+        run: |
+          CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-report.json)
+          echo "Found $CRITICAL_COUNT critical vulnerabilities"
+          if [ "$CRITICAL_COUNT" -gt 5 ]; then
+            echo "Too many critical vulnerabilities ($CRITICAL_COUNT), failing."
+            exit 1
+          fi
+
+
       # Deploy to EC2
       - name: Install SSH Client
         run: sudo apt-get update && sudo apt-get install -y openssh-client
@@ -117,26 +119,26 @@ jobs:
             StrictHostKeyChecking no
           EOF
 
-      - name: Test Connection
-        run: ssh -v ec2 "echo 'SSH connection successful!'"
+      #- name: Test Connection
+      #  run: ssh -v ec2 "echo 'SSH connection successful!'"
 
-      - name: Deploy Container
-        run: |
-          ssh -v ec2 /bin/bash <<'EOL'
-          # --- Debugging info ---
-          echo "EC2 Host: $(hostname)"
-          echo "Docker version: $(docker --version)"
-          echo "Current containers: $(docker ps -a)"
+      #- name: Deploy Container
+      #  run: |
+      #    ssh -v ec2 /bin/bash <<'EOL'
+      #    # --- Debugging info ---
+      #    echo "EC2 Host: $(hostname)"
+      #    echo "Docker version: $(docker --version)"
+      #    echo "Current containers: $(docker ps -a)"
           
           # Login to GHCR
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin || echo "GHCR login failed"            
-            # Stop/remove old container
-            docker stop myapp || true
-            docker rm myapp || true
+      #    echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin || echo "GHCR login failed"            
+      #      # Stop/remove old container
+      #     docker stop myapp || true
+      #      docker rm myapp || true
             
             # Pull new image and run
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
-            docker run -d \
-              --name myapp \
-              -p 8080:8080 \
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+      #      docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+      #      docker run -d \
+      #        --name myapp \
+      #        -p 8080:8080 \
+      #        ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
