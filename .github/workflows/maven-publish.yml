@@ -28,14 +28,6 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: java
-
-      - name: Run CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-
 	  - name: Dependency Scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -49,6 +41,16 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B package
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: java
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
