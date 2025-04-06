@@ -37,9 +37,27 @@ jobs:
           vuln-type: library
           path: .
 
-
       - name: Build with Maven
         run: mvn -B package
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@v0.19.0
+        with:
+          scan-type: image
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          format: json
+          output: trivy-report.json
+          severity: CRITICAL
+          ignore-unfixed: true
+
+      - name: Check Trivy critical count
+        run: |
+          CRITICAL_COUNT=$(jq '[.[] | .Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-report.json)
+          echo "Found $CRITICAL_COUNT critical vulnerabilities"
+          if [ "$CRITICAL_COUNT" -gt 5 ]; then
+            echo "Too many critical vulnerabilities ($CRITICAL_COUNT), failing."
+            exit 1
+          fi
 
       # Login to GitHub Container Registry
       - name: Log in to GHCR
